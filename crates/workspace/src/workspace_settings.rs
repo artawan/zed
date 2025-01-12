@@ -22,6 +22,7 @@ pub struct WorkspaceSettings {
     pub use_system_path_prompts: bool,
     pub command_aliases: HashMap<String, String>,
     pub show_user_picture: bool,
+    pub show_top_bar: bool,
     pub max_tabs: Option<NonZeroUsize>,
 }
 
@@ -136,6 +137,10 @@ pub struct WorkspaceSettingsContent {
     ///
     /// Default: true
     pub show_user_picture: Option<bool>,
+    /// Whether to show the title bar.
+    ///
+    /// Default: true
+    pub show_top_bar: Option<bool>,
     // Maximum open tabs in a pane. Will not close an unsaved
     // tab. Set to `None` for unlimited tabs.
     //

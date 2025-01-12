@@ -16,6 +16,7 @@ use auto_update::AutoUpdateStatus;
 use call::ActiveCall;
 use client::{Client, UserStore};
 use feature_flags::{FeatureFlagAppExt, ZedPro};
+#[allow(unused_imports)]
 use gpui::{
     actions, div, px, Action, AnyElement, AppContext, Decorations, Element, InteractiveElement,
     Interactivity, IntoElement, Model, MouseButton, ParentElement, Render, Stateful,
@@ -94,6 +95,7 @@ pub fn init(cx: &mut AppContext) {
     .detach();
 }
 
+#[allow(dead_code)]
 pub struct TitleBar {
     platform_style: PlatformStyle,
     content: Stateful<Div>,
@@ -123,129 +125,135 @@ impl Render for TitleBar {
             cx.theme().colors().title_bar_background
         };
 
+        // if workspace::WorkspaceSettings::get_global(cx).show_top_bar {
         h_flex()
             .id("titlebar")
-            .w_full()
-            .h(height)
-            .map(|this| {
-                if cx.is_fullscreen() {
-                    this.pl_2()
-                } else if self.platform_style == PlatformStyle::Mac {
-                    this.pl(px(platform_mac::TRAFFIC_LIGHT_PADDING))
-                } else {
-                    this.pl_2()
-                }
-            })
-            .map(|el| match decorations {
-                Decorations::Server => el,
-                Decorations::Client { tiling, .. } => el
-                    .when(!(tiling.top || tiling.right), |el| {
-                        el.rounded_tr(theme::CLIENT_SIDE_DECORATION_ROUNDING)
-                    })
-                    .when(!(tiling.top || tiling.left), |el| {
-                        el.rounded_tl(theme::CLIENT_SIDE_DECORATION_ROUNDING)
-                    })
-                    // this border is to avoid a transparent gap in the rounded corners
-                    .mt(px(-1.))
-                    .border(px(1.))
-                    .border_color(titlebar_color),
-            })
-            .bg(titlebar_color)
-            .content_stretch()
-            .child(
-                div()
-                    .id("titlebar-content")
-                    .flex()
-                    .flex_row()
-                    .justify_between()
-                    .w_full()
-                    // Note: On Windows the title bar behavior is handled by the platform implementation.
-                    .when(self.platform_style != PlatformStyle::Windows, |this| {
-                        this.on_click(|event, cx| {
-                            if event.up.click_count == 2 {
-                                cx.zoom_window();
-                            }
-                        })
-                    })
-                    .child(
-                        h_flex()
-                            .gap_1()
-                            .map(|title_bar| {
-                                let mut render_project_items = true;
-                                title_bar
-                                    .when_some(self.application_menu.clone(), |title_bar, menu| {
-                                        render_project_items = !menu.read(cx).all_menus_shown();
-                                        title_bar.child(menu)
-                                    })
-                                    .when(render_project_items, |title_bar| {
-                                        title_bar
-                                            .children(self.render_project_host(cx))
-                                            .child(self.render_project_name(cx))
-                                            .children(self.render_project_branch(cx))
-                                    })
-                            })
-                            .on_mouse_down(MouseButton::Left, |_, cx| cx.stop_propagation()),
-                    )
-                    .child(self.render_collaborator_list(cx))
-                    .child(
-                        h_flex()
-                            .gap_1()
-                            .pr_1()
-                            .on_mouse_down(MouseButton::Left, |_, cx| cx.stop_propagation())
-                            .children(self.render_call_controls(cx))
-                            .map(|el| {
-                                let status = self.client.status();
-                                let status = &*status.borrow();
-                                if matches!(status, client::Status::Connected { .. }) {
-                                    el.child(self.render_user_menu_button(cx))
-                                } else {
-                                    el.children(self.render_connection_status(status, cx))
-                                        .child(self.render_sign_in_button(cx))
-                                        .child(self.render_user_menu_button(cx))
-                                }
-                            }),
-                    ),
-            )
-            .when(!cx.is_fullscreen(), |title_bar| match self.platform_style {
-                PlatformStyle::Mac => title_bar,
-                PlatformStyle::Linux => {
-                    if matches!(decorations, Decorations::Client { .. }) {
-                        title_bar
-                            .child(platform_linux::LinuxWindowControls::new(close_action))
-                            .when(supported_controls.window_menu, |titlebar| {
-                                titlebar.on_mouse_down(gpui::MouseButton::Right, move |ev, cx| {
-                                    cx.show_window_menu(ev.position)
-                                })
-                            })
-                            .on_mouse_move(cx.listener(move |this, _ev, cx| {
-                                if this.should_move {
-                                    this.should_move = false;
-                                    cx.start_window_move();
-                                }
-                            }))
-                            .on_mouse_down_out(cx.listener(move |this, _ev, _cx| {
-                                this.should_move = false;
-                            }))
-                            .on_mouse_up(
-                                gpui::MouseButton::Left,
-                                cx.listener(move |this, _ev, _cx| {
-                                    this.should_move = false;
-                                }),
-                            )
-                            .on_mouse_down(
-                                gpui::MouseButton::Left,
-                                cx.listener(move |this, _ev, _cx| {
-                                    this.should_move = true;
-                                }),
-                            )
-                    } else {
-                        title_bar
-                    }
-                }
-                PlatformStyle::Windows => {
-                    title_bar.child(platform_windows::WindowsWindowControls::new(height))
-                }
-            })
+            // .w_full()
+            // .h(height)
+            // .map(|this| {
+            //     if cx.is_fullscreen() {
+            //         this.pl_2()
+            //     } else if self.platform_style == PlatformStyle::Mac {
+            //         this.pl(px(platform_mac::TRAFFIC_LIGHT_PADDING))
+            //     } else {
+            //         this.pl_2()
+            //     }
+            // })
+            // .map(|el| match decorations {
+            //     Decorations::Server => el,
+            //     Decorations::Client { tiling, .. } => el
+            //         .when(!(tiling.top || tiling.right), |el| {
+            //             el.rounded_tr(theme::CLIENT_SIDE_DECORATION_ROUNDING)
+            //         })
+            //         .when(!(tiling.top || tiling.left), |el| {
+            //             el.rounded_tl(theme::CLIENT_SIDE_DECORATION_ROUNDING)
+            //         })
+            //         // this border is to avoid a transparent gap in the rounded corners
+            //         .mt(px(-1.))
+            //         .border(px(1.))
+            //         .border_color(titlebar_color),
+            // })
+            // .bg(titlebar_color)
+            // .content_stretch()
+            // .child(
+            //     div()
+            //         .id("titlebar-content")
+            //         .flex()
+            //         .flex_row()
+            //         .justify_between()
+            //         .w_full()
+            //         // Note: On Windows the title bar behavior is handled by the platform implementation.
+            //         .when(self.platform_style != PlatformStyle::Windows, |this| {
+            //             this.on_click(|event, cx| {
+            //                 if event.up.click_count == 2 {
+            //                     cx.zoom_window();
+            //                 }
+            //             })
+            //         })
+            //         .child(
+            //             h_flex()
+            //                 .gap_1()
+            //                 .map(|title_bar| {
+            //                     let mut render_project_items = true;
+            //                     title_bar
+            //                         .when_some(
+            //                             self.application_menu.clone(),
+            //                             |title_bar, menu| {
+            //                                 render_project_items =
+            //                                     !menu.read(cx).all_menus_shown();
+            //                                 title_bar.child(menu)
+            //                             },
+            //                         )
+            //                         .when(render_project_items, |title_bar| {
+            //                             title_bar
+            //                                 .children(self.render_project_host(cx))
+            //                                 .child(self.render_project_name(cx))
+            //                                 .children(self.render_project_branch(cx))
+            //                         })
+            //                 })
+            //                 .on_mouse_down(MouseButton::Left, |_, cx| cx.stop_propagation()),
+            //         )
+            //         .child(self.render_collaborator_list(cx))
+            //         .child(
+            //             h_flex()
+            //                 .gap_1()
+            //                 .pr_1()
+            //                 .on_mouse_down(MouseButton::Left, |_, cx| cx.stop_propagation())
+            //                 .children(self.render_call_controls(cx))
+            //                 .map(|el| {
+            //                     let status = self.client.status();
+            //                     let status = &*status.borrow();
+            //                     if matches!(status, client::Status::Connected { .. }) {
+            //                         el.child(self.render_user_menu_button(cx))
+            //                     } else {
+            //                         el.children(self.render_connection_status(status, cx))
+            //                             .child(self.render_sign_in_button(cx))
+            //                             .child(self.render_user_menu_button(cx))
+            //                     }
+            //                 }),
+            //         ),
+            // )
+            // .when(!cx.is_fullscreen(), |title_bar| match self.platform_style {
+            //     PlatformStyle::Mac => title_bar,
+            //     PlatformStyle::Linux => {
+            //         if matches!(decorations, Decorations::Client { .. }) {
+            //             title_bar
+            //                 .child(platform_linux::LinuxWindowControls::new(close_action))
+            //                 .when(supported_controls.window_menu, |titlebar| {
+            //                     titlebar
+            //                         .on_mouse_down(gpui::MouseButton::Right, move |ev, cx| {
+            //                             cx.show_window_menu(ev.position)
+            //                         })
+            //                 })
+            //                 .on_mouse_move(cx.listener(move |this, _ev, cx| {
+            //                     if this.should_move {
+            //                         this.should_move = false;
+            //                         cx.start_window_move();
+            //                     }
+            //                 }))
+            //                 .on_mouse_down_out(cx.listener(move |this, _ev, _cx| {
+            //                     this.should_move = false;
+            //                 }))
+            //                 .on_mouse_up(
+            //                     gpui::MouseButton::Left,
+            //                     cx.listener(move |this, _ev, _cx| {
+            //                         this.should_move = false;
+            //                     }),
+            //                 )
+            //                 .on_mouse_down(
+            //                     gpui::MouseButton::Left,
+            //                     cx.listener(move |this, _ev, _cx| {
+            //                         this.should_move = true;
+            //                     }),
+            //                 )
+            //         } else {
+            //             title_bar
+            //         }
+            //     }
+            //     PlatformStyle::Windows => {
+            //         title_bar.child(platform_windows::WindowsWindowControls::new(height))
+            //     }
+            // })
     }
 }
 
@@ -531,6 +539,7 @@ impl TitleBar {
         cx.notify();
     }
 
+    #[allow(unused)]
     fn share_project(&mut self, _: &ShareProject, cx: &mut ViewContext<Self>) {
         let active_call = ActiveCall::global(cx);
         let project = self.project.clone();
@@ -539,6 +548,7 @@ impl TitleBar {
             .detach_and_log_err(cx);
     }
 
+    #[allow(unused)]
     fn unshare_project(&mut self, _: &UnshareProject, cx: &mut ViewContext<Self>) {
         let active_call = ActiveCall::global(cx);
         let project = self.project.clone();
@@ -547,6 +557,7 @@ impl TitleBar {
             .log_err();
     }
 
+    #[allow(unused)]
     fn render_connection_status(
         &self,
         status: &client::Status,

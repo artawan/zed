@@ -15,14 +15,10 @@ use crate::platforms::{platform_linux, platform_mac, platform_windows};
 use auto_update::AutoUpdateStatus;
 use call::ActiveCall;
 use client::{Client, UserStore};
-<<<<<<< copy_main
 use feature_flags::{FeatureFlagAppExt, GitUiFeatureFlag, ZedPro};
 use git_ui::repository_selector::RepositorySelector;
 use git_ui::repository_selector::RepositorySelectorPopoverMenu;
-=======
 use feature_flags::{FeatureFlagAppExt, ZedPro};
-#[allow(unused_imports)]
->>>>>>> Toggle titlebar options
 use gpui::{
     actions, div, px, Action, AnyElement, AppContext, Decorations, Element, InteractiveElement,
     Interactivity, IntoElement, Model, MouseButton, ParentElement, Render, Stateful,

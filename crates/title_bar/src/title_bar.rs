@@ -139,6 +139,7 @@ impl Render for TitleBar {
             cx.theme().colors().title_bar_background
         };
 
+	if workspace::WorkspaceSettings::get_global(cx).show_top_bar || !window.is_fullscreen() {
         h_flex()
             .id("titlebar")
             .w_full()
@@ -267,6 +268,10 @@ impl Render for TitleBar {
                     }
                 }
             })
+	}else{
+		h_flex()
+		.id("titlebar")
+	}
     }
 }
 

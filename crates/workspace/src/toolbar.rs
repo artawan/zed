@@ -105,7 +105,6 @@ impl Render for Toolbar {
 
         v_flex()
             .group("toolbar")
-            .p(DynamicSpacing::Base08.rems(cx))
             .when(has_left_items || has_right_items, |this| {
                 this.gap(DynamicSpacing::Base08.rems(cx))
             })

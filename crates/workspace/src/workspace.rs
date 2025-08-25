@@ -182,6 +182,8 @@ actions!(
         ShutdownDebugAdapters,
         ToggleBottomDock,
         ToggleCenteredLayout,
+        ToggleShowTitleBar,
+        GetShowTitleBar,
         ToggleLeftDock,
         ToggleRightDock,
         ToggleZoom,
@@ -868,6 +870,7 @@ pub struct Workspace {
     pane_history_timestamp: Arc<AtomicUsize>,
     bounds: Bounds<Pixels>,
     centered_layout: bool,
+    show_title_bar: bool,
     bounds_save_task_queued: Option<Task<()>>,
     on_prompt_for_new_path: Option<PromptForNewPath>,
     on_prompt_for_open_path: Option<PromptForOpenPath>,
@@ -1195,6 +1198,7 @@ impl Workspace {
             // This data will be incorrect, but it will be overwritten by the time it needs to be used.
             bounds: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             bounds_save_task_queued: None,
             on_prompt_for_new_path: None,
             on_prompt_for_open_path: None,
@@ -4765,6 +4769,7 @@ impl Workspace {
                 display: Default::default(),
                 docks,
                 centered_layout: self.centered_layout,
+                show_title_bar: self.show_title_bar,
                 session_id: self.session_id.clone(),
                 breakpoints,
                 window_id: Some(window.window_handle().window_id().as_u64()),
@@ -5182,6 +5187,29 @@ impl Workspace {
                 .detach_and_log_err(cx);
         }
         cx.notify();
+    }
+
+    pub fn toggle_show_title_bar(
+        &mut self,
+        _: &ToggleShowTitleBar,
+        _: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.show_title_bar = !self.show_title_bar;
+        if let Some(database_id) = self.database_id() {
+            cx.background_spawn(DB.set_show_title_bar(database_id, self.show_title_bar))
+                .detach_and_log_err(cx);
+        }
+        cx.notify();
+    }
+
+    pub fn get_show_title_bar(
+        &mut self,
+        // _: &GetShowTitleBar,
+        // _: &mut Window
+        // cx: &mut Context<Self>
+    ) -> bool{
+        return self.show_title_bar
     }
 
     fn adjust_padding(padding: Option<f32>) -> f32 {

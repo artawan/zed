@@ -126,6 +126,7 @@ pub struct TitleBar {
 impl Render for TitleBar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let close_action = Box::new(workspace::CloseWindow);
+        // let is_show_title_bar = workspace::Workspace.show_title_bar;
         let height = Self::height(window);
         let supported_controls = window.window_controls();
         let decorations = window.window_decorations();
@@ -139,7 +140,8 @@ impl Render for TitleBar {
             cx.theme().colors().title_bar_background
         };
 
-	if workspace::WorkspaceSettings::get_global(cx).show_top_bar || !window.is_fullscreen() {
+	// if workspace::WorkspaceSettings::get_global(cx).show_top_bar || !window.is_fullscreen() {
+	if Workspace::get_show_title_bar() || !window.is_fullscreen() {
         h_flex()
             .id("titlebar")
             .w_full()

@@ -293,6 +293,7 @@ define_connection! {
     //   display: Option<Uuid>, // Display id
     //   fullscreen: Option<bool>, // Is the window fullscreen?
     //   centered_layout: Option<bool>, // Is the Centered Layout mode activated?
+    //   show_title_bar: Option<bool>, // Is the Top Title Bar mode activated?
     //   session_id: Option<String>, // Session id
     //   window_id: Option<u64>, // Window Id
     // )
@@ -456,6 +457,10 @@ define_connection! {
     sql!(
         ALTER TABLE workspaces ADD COLUMN centered_layout INTEGER; //bool
     ),
+    // Add show_title_bar field to workspace
+    sql!(
+        ALTER TABLE workspaces ADD COLUMN show_title_bar INTEGER; //bool
+    ),
     sql!(
         CREATE TABLE remote_projects (
             remote_project_id INTEGER NOT NULL UNIQUE,
@@ -565,6 +570,7 @@ impl WorkspaceDb {
             window_bounds,
             display,
             centered_layout,
+            show_title_bar,
             docks,
             window_id,
         ): (
@@ -573,6 +579,7 @@ impl WorkspaceDb {
             Option<LocalPathsOrder>,
             Option<SerializedWindowBounds>,
             Option<Uuid>,
+            Option<bool>,
             Option<bool>,
             DockStructure,
             Option<u64>,
@@ -589,6 +596,7 @@ impl WorkspaceDb {
                     window_height,
                     display,
                     centered_layout,
+                    show_title_bar,
                     left_dock_visible,
                     left_dock_active_panel,
                     left_dock_zoom,
@@ -625,6 +633,7 @@ impl WorkspaceDb {
                 .log_err()?,
             window_bounds,
             centered_layout: centered_layout.unwrap_or(false),
+            show_title_bar: show_title_bar.unwrap_or(false),
             display,
             docks,
             session_id: None,
@@ -637,10 +646,11 @@ impl WorkspaceDb {
         &self,
         ssh_project: &SerializedSshProject,
     ) -> Option<SerializedWorkspace> {
-        let (workspace_id, window_bounds, display, centered_layout, docks, window_id): (
+        let (workspace_id, window_bounds, display, centered_layout, show_title_bar, docks, window_id): (
             WorkspaceId,
             Option<SerializedWindowBounds>,
             Option<Uuid>,
+            Option<bool>,
             Option<bool>,
             DockStructure,
             Option<u64>,
@@ -655,6 +665,7 @@ impl WorkspaceDb {
                     window_height,
                     display,
                     centered_layout,
+                    show_title_bar,
                     left_dock_visible,
                     left_dock_active_panel,
                     left_dock_zoom,
@@ -682,6 +693,7 @@ impl WorkspaceDb {
                 .log_err()?,
             window_bounds,
             centered_layout: centered_layout.unwrap_or(false),
+            show_title_bar: show_title_bar.unwrap_or(false),
             breakpoints: self.breakpoints(workspace_id),
             display,
             docks,
@@ -1335,6 +1347,14 @@ impl WorkspaceDb {
         }
     }
 
+    query! {
+        pub(crate) async fn set_show_title_bar(workspace_id: WorkspaceId, show_title_bar: bool) -> Result<()> {
+            UPDATE workspaces
+            SET show_title_bar = ?2
+            WHERE workspace_id = ?1
+        }
+    }
+
     pub async fn toolchain(
         &self,
         workspace_id: WorkspaceId,
@@ -1490,6 +1510,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: {
                 let mut map = collections::BTreeMap::default();
                 map.insert(
@@ -1643,6 +1664,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: {
                 let mut map = collections::BTreeMap::default();
                 map.insert(
@@ -1689,6 +1711,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: collections::BTreeMap::default(),
             session_id: None,
             window_id: None,
@@ -1783,6 +1806,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: None,
             window_id: None,
@@ -1796,6 +1820,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: None,
             window_id: None,
@@ -1905,6 +1930,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: None,
             window_id: Some(999),
         };
@@ -1940,6 +1966,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: None,
             window_id: Some(1),
         };
@@ -1952,6 +1979,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: None,
             window_id: Some(2),
@@ -1996,6 +2024,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: None,
             window_id: Some(3),
         };
@@ -2032,6 +2061,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: Some("session-id-1".to_owned()),
             window_id: Some(10),
@@ -2045,6 +2075,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: Some("session-id-1".to_owned()),
             window_id: Some(20),
@@ -2058,6 +2089,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: Some("session-id-2".to_owned()),
             window_id: Some(30),
@@ -2071,6 +2103,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: None,
             window_id: None,
@@ -2089,6 +2122,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             breakpoints: Default::default(),
             session_id: Some("session-id-2".to_owned()),
             window_id: Some(50),
@@ -2106,6 +2140,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: Some("session-id-3".to_owned()),
             window_id: Some(60),
         };
@@ -2162,6 +2197,7 @@ mod tests {
             docks: Default::default(),
             breakpoints: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: None,
             window_id: None,
         }
@@ -2207,6 +2243,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: Some("one-session".to_owned()),
             breakpoints: Default::default(),
             window_id: Some(window_id),
@@ -2299,6 +2336,7 @@ mod tests {
             display: Default::default(),
             docks: Default::default(),
             centered_layout: false,
+            show_title_bar: false,
             session_id: Some("one-session".to_owned()),
             breakpoints: Default::default(),
             window_id: Some(window_id),

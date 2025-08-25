@@ -142,96 +142,100 @@ impl Render for TitleBar {
 
         let mut children = Vec::new();
 
-        children.push(
-            h_flex()
-                .gap_1()
-                .map(|title_bar| {
-                    let mut render_project_items = title_bar_settings.show_branch_name
-                        || title_bar_settings.show_project_items;
-                    title_bar
-                        .when_some(
-                            self.application_menu.clone().filter(|_| !show_menus),
-                            |title_bar, menu| {
-                                render_project_items &=
-                                    !menu.update(cx, |menu, cx| menu.all_menus_shown(cx));
-                                title_bar.child(menu)
-                            },
-                        )
-                        .when(render_project_items, |title_bar| {
-                            title_bar
-                                .when(title_bar_settings.show_project_items, |title_bar| {
-                                    title_bar
-                                        .children(self.render_project_host(cx))
-                                        .child(self.render_project_name(cx))
-                                })
-                                .when(title_bar_settings.show_branch_name, |title_bar| {
-                                    title_bar.children(self.render_project_branch(cx))
-                                })
-                        })
-                })
-                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                .into_any_element(),
-        );
+        if title_bar_settings.show_menus {
+            children.push(
+                h_flex()
+                    .gap_1()
+                    .map(|title_bar| {
+                        let mut render_project_items = title_bar_settings.show_branch_name
+                            || title_bar_settings.show_project_items;
+                        title_bar
+                            .when_some(
+                                self.application_menu.clone().filter(|_| !show_menus),
+                                |title_bar, menu| {
+                                    render_project_items &=
+                                        !menu.update(cx, |menu, cx| menu.all_menus_shown(cx));
+                                    title_bar.child(menu)
+                                },
+                            )
+                            .when(render_project_items, |title_bar| {
+                                title_bar
+                                    .when(title_bar_settings.show_project_items, |title_bar| {
+                                        title_bar
+                                            .children(self.render_project_host(cx))
+                                            .child(self.render_project_name(cx))
+                                    })
+                                    .when(title_bar_settings.show_branch_name, |title_bar| {
+                                        title_bar.children(self.render_project_branch(cx))
+                                    })
+                            })
+                    })
+                    .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                    .into_any_element(),
+            );
 
-        children.push(self.render_collaborator_list(window, cx).into_any_element());
+            children.push(self.render_collaborator_list(window, cx).into_any_element());
 
-        if title_bar_settings.show_onboarding_banner {
-            children.push(self.banner.clone().into_any_element())
-        }
+            if title_bar_settings.show_onboarding_banner {
+                children.push(self.banner.clone().into_any_element())
+            }
 
-        let status = self.client.status();
-        let status = &*status.borrow();
-        let user = self.user_store.read(cx).current_user();
+            let status = self.client.status();
+            let status = &*status.borrow();
+            let user = self.user_store.read(cx).current_user();
 
-        children.push(
-            h_flex()
-                .gap_1()
-                .pr_1()
-                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                .children(self.render_call_controls(window, cx))
-                .children(self.render_connection_status(status, cx))
-                .when(
-                    user.is_none() && TitleBarSettings::get_global(cx).show_sign_in,
-                    |el| el.child(self.render_sign_in_button(cx)),
-                )
-                .when(user.is_some(), |parent| {
-                    parent.child(self.render_user_menu_button(cx))
-                })
-                .into_any_element(),
-        );
+            children.push(
+                h_flex()
+                    .gap_1()
+                    .pr_1()
+                    .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                    .children(self.render_call_controls(window, cx))
+                    .children(self.render_connection_status(status, cx))
+                    .when(
+                        user.is_none() && TitleBarSettings::get_global(cx).show_sign_in,
+                        |el| el.child(self.render_sign_in_button(cx)),
+                    )
+                    .when(user.is_some(), |parent| {
+                        parent.child(self.render_user_menu_button(cx))
+                    })
+                    .into_any_element(),
+            );
 
-        if show_menus {
-            self.platform_titlebar.update(cx, |this, _| {
-                this.set_children(
-                    self.application_menu
-                        .clone()
-                        .map(|menu| menu.into_any_element()),
-                );
-            });
+            if show_menus {
+                self.platform_titlebar.update(cx, |this, _| {
+                    this.set_children(
+                        self.application_menu
+                            .clone()
+                            .map(|menu| menu.into_any_element()),
+                    );
+                });
 
-            let height = PlatformTitleBar::height(window);
-            let title_bar_color = self.platform_titlebar.update(cx, |platform_titlebar, cx| {
-                platform_titlebar.title_bar_color(window, cx)
-            });
+                let height = PlatformTitleBar::height(window);
+                let title_bar_color = self.platform_titlebar.update(cx, |platform_titlebar, cx| {
+                    platform_titlebar.title_bar_color(window, cx)
+                });
 
-            v_flex()
-                .w_full()
-                .child(self.platform_titlebar.clone().into_any_element())
-                .child(
-                    h_flex()
-                        .bg(title_bar_color)
-                        .h(height)
-                        .pl_2()
-                        .justify_between()
-                        .w_full()
-                        .children(children),
-                )
-                .into_any_element()
+                v_flex()
+                    .w_full()
+                    .child(self.platform_titlebar.clone().into_any_element())
+                    .child(
+                        h_flex()
+                            .bg(title_bar_color)
+                            .h(height)
+                            .pl_2()
+                            .justify_between()
+                            .w_full()
+                            .children(children),
+                    )
+                    .into_any_element()
+            } else {
+                self.platform_titlebar.update(cx, |this, _| {
+                    this.set_children(children);
+                });
+                self.platform_titlebar.clone().into_any_element()
+            }
         } else {
-            self.platform_titlebar.update(cx, |this, _| {
-                this.set_children(children);
-            });
-            self.platform_titlebar.clone().into_any_element()
+            v_flex().w_full().into_any_element()
         }
     }
 }

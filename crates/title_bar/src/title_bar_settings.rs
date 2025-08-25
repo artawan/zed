@@ -12,6 +12,7 @@ pub struct TitleBarSettings {
     pub show_project_items: bool,
     pub show_sign_in: bool,
     pub show_menus: bool,
+    pub enable: bool,
 }
 
 #[derive(Copy, Clone, Default, Serialize, Deserialize, JsonSchema, Debug)]
@@ -44,6 +45,10 @@ pub struct TitleBarSettingsContent {
     ///
     /// Default: false
     pub show_menus: Option<bool>,
+    /// Whether to show the menus in the title bar.
+    ///
+    /// Default: true
+    pub enable: Option<bool>,
 }
 
 impl Settings for TitleBarSettings {

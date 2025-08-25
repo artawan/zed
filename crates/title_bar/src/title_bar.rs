@@ -142,7 +142,7 @@ impl Render for TitleBar {
 
         let mut children = Vec::new();
 
-        if title_bar_settings.show_menus {
+        if title_bar_settings.enable {
             children.push(
                 h_flex()
                     .gap_1()
